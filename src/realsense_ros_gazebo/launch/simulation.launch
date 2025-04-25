@@ -15,6 +15,7 @@
     <arg name="headless" value="false"/>
     <arg name="recording" value="false"/>
     <arg name="debug" value="false"/>
+    <arg name="verbose" value="false"/>
   </include>
 
   <!-- state publishers -->

@@ -1,20 +1,20 @@
 # realsense_ros_gazebo
 
-> 代码克隆于 [Intel RealSense Gazebo/ROS](https://gitee.com/nie_xun/realsense_ros_gazebo?_from=gitee_search)
+> 代码fork自[tugepaopaoo/realsense_ros_gazebo: D435i, iris_D435i models in gazebo.](https://github.com/tugepaopaoo/realsense_ros_gazebo)，并作了了一些修改
 
-本仓库提供 d435i 相机模型和 iris_D435i 模型用于在 gazebo 中进行仿真模拟。对原模型配置文件修改了一点参数。
+本仓库提供 d435i 相机模型和 iris_D435i 模型用于在 gazebo 中进行仿真模拟。
 
 **其实，可以直接使用 px4 官方提供的 iris_depth_camera 模型进行无人机仿真。**
 
 
-## 快速开始
+## 1. 快速开始
 
 在已经安装 ros、px4 环境的 ubuntu 18.04 上编译测试通过。
 
 ```bash
-git clone https://github.com/tugepaopaoo/realsense_ros_gazebo.git
-cd realsense_ros_gazebo
-catkin_make
+git clone https://github.com/Tfly6/realsense_ros_gazebo.git
+cd realsense_ros_gazebo/
+catkin build
 ```
 
 你可以在编译完成后，在当前终端中通过指令快速查看是否编译成功。
@@ -37,43 +37,38 @@ source devel/setup.bash && roslaunch realsense_ros_gazebo simulation_D435i_sdf.l
   <img src="pictures/simulation_D435i_sdf.png" width = "400" />
 </p>
 
-## 环境配置
 
+## 2. 环境配置
+
+> 配置前请参照 [(最新)ubuntu搭建PX4无人机仿真环境(4) ——仿真环境搭建(以Ubuntu 18.04,ROS1 Melodic 为例)](https://blog.csdn.net/weixin_55944949/article/details/130895608?spm=1001.2014.3001.5502) 这篇博客，搭建好基础仿真环境。
+>
 > 配置环境，可以在gazebo仿真中加载带有 D435i 的 iris 无人机。
 
 1. 复制相机插件 librealsense_gazebo_plugin.so 到 px4 的动态链接库目录中。
 
 ```bash
-cp ${YOUR_WORKSPACE_PATH}/devel/lib/librealsense_gazebo_plugin.so ${YOUR_PX4_PATH}/build/px4_sitl_default/build_gazebo/
-```3
-
-2. 复制相机模型 D435i 和飞机模型 iris_D435i 到 px4 的模型库中。 
-
-```bash
-cp -r ${YOUR_WORKSPACE_PATH}/src/realsense_ros_gazebo/sdf/D435i ${YOUR_PX4_PATH}/Tools/sitl_gazebo/models/
-cp -r ${YOUR_WORKSPACE_PATH}/src/realsense_ros_gazebo/sdf/iris_D435i ${YOUR_PX4_PATH}/Tools/sitl_gazebo/models/
+cd realsense_ros_gazebo/
+cp ./devel/lib/librealsense_gazebo_plugin.so ${YOUR_PX4_PATH}/build/px4_sitl_default/build_gazebo/
 ```
 
-注意：在安装 PX4 时应该已经在 `.bashrc` 文件中配置了相关环境，文件的最后应有如下命令（`/home/user/PX4_Firmware` 替换为你自己的路径，即上文的 `${YOUR_PX4_PATH}`）：
+2. 复制相机模型 D435i 、飞机模型 iris_D435i 和launch文件到 px4 中。 
 
 ```bash
-source /home/user/PX4_Firmware/Tools/setup_gazebo.bash /home/hahaha/PX4_Firmware /home/hahaha/PX4_Firmware/build/px4_sitl_default
-export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:/home/user/PX4_Firmware
-export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:/home/user/PX4_Firmware/Tools/sitl_gazebo
-
+# model
+git apply model.patch
+cp -r ./src/realsense_ros_gazebo/sdf/D435i ${YOUR_PX4_PATH}/Tools/sitl_gazebo/models/
+cp -r ./src/realsense_ros_gazebo/sdf/iris_D435i ${YOUR_PX4_PATH}/Tools/sitl_gazebo/models/
+# launch
+cp ./src/realsense_ros_gazebo/launch/mavros_posix_sitl_D435i.launch ${YOUR_PX4_PATH}/launch
 ```
 
-## 启动 Gazebo 仿真
 
-修改 `${YOUR_PX4_PATH}/launch` 路径下 `mavros_posix_sitl.launch` 文件，将 `<arg name="sdf" default=" "/>` 中的模型替换为我们上面复制到 px4 中的 iris_D435i.sdf 模型，其余保持不变，替换部分修改后如下：
+
+## 3. 启动 Gazebo 仿真
 
 ```bash
-    <!-- vehicle model and world -->
-    <arg name="est" default="ekf2"/>
-    <arg name="vehicle" default="iris"/>
-    <arg name="world" default="$(find mavlink_sitl_gazebo)/worlds/empty.world"/>
-    <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/iris_D435i/iris_D435i.sdf"/>
-
+ source ~/.bashrc
+ roslaunch px4 mavros_posix_sitl_D435i.launch
 ```
 
 终端中输入命令，即可在 gazebo 看见 iris_D435i.sdf 模型。
@@ -81,15 +76,30 @@ export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:/home/user/PX4_Firmware/Tools/sitl_gaz
 <p align="center">
   <img src="pictures/iris_D435i.png" width = "400" />
 </p>
+新开一个终端通过 `rostopic list`，即可查看到相机的相关话题消息（检查关键话题没有缺少即可）。
 
-新开一个终端通过 `rostopic list`，即可查看到相机的相关话题消息。
+```bash
+/camera/color/camera_info
+/camera/color/image_raw
+/camera/depth/camera_info
+/camera/depth/image_raw
+/camera/imu
+/camera/infra1/camera_info
+/camera/infra1/image_raw
+/camera/infra2/camera_info
+/camera/infra2/image_raw
+```
+
+
 
 <p align="center">
   <img src="pictures/rostopic.png" width = "300" />
 </p>
 
 
-## 相机前方的图像界面显示调整
+## 4. 其他
+
+### 相机前方的图像界面显示调整
 
 通过对相机模型 `D435i.sdf` 文件中图示属性的调整，可以选择 `显示` 或 `隐藏` 相机前方的实时相机界面。 
 
@@ -109,7 +119,7 @@ export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:/home/user/PX4_Firmware/Tools/sitl_gaz
 </p>
 
 
-## 对原仓库文件的修改说明
+### 对[原仓库](https://gitee.com/nie_xun/realsense_ros_gazebo?_from=gitee_search)文件的修改说明
 
 只对原仓库中 `iris_D435i.sdf` 文件进行了修改。
 
