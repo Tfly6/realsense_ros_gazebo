@@ -1,0 +1,13 @@
+diff --git a/src/realsense_ros_gazebo/sdf/D435i/model.sdf b/src/realsense_ros_gazebo/sdf/D435i/model.sdf
+index 7d04e54..eaa810e 100644
+--- a/src/realsense_ros_gazebo/sdf/D435i/model.sdf
++++ b/src/realsense_ros_gazebo/sdf/D435i/model.sdf
+@@ -19,7 +19,7 @@
+       <visual name="visual">
+         <geometry>
+          <mesh>
+-            <uri>model://realsense_ros_gazebo/meshes/realsense_d435.stl</uri>
++            <uri>model://D435i/meshes/realsense_d435.stl</uri>
+             <!--uri>model://realsense_camera/meshes/D435i.dae</uri-->
+           </mesh>
+         </geometry>
